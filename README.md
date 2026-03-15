@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AquaReport Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#060d1c;color:#c8dff5;font-family:monospace;min-height:100vh}
@@ -16,7 +17,9 @@ body{background:#060d1c;color:#c8dff5;font-family:monospace;min-height:100vh}
 .navb{flex:1;padding:10px 2px;background:none;border:none;border-bottom:2px solid transparent;color:#3a5f8a;font-size:8px;font-family:monospace;cursor:pointer;text-align:center}
 .navb.on{color:#00d4ff;border-bottom-color:#00d4ff}
 .navic{font-size:14px;display:block;margin-bottom:2px}
-.pg{padding:14px}.st{font-size:9px;color:#00d4ff;letter-spacing:.12em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #1a3050;margin-top:12px}.st:first-child{margin-top:0}
+.pg{padding:14px}
+.st{font-size:9px;color:#00d4ff;letter-spacing:.12em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #1a3050;margin-top:12px}
+.st:first-child{margin-top:0}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 .inp{background:#0f1e35;border:1px solid #1a3050;border-radius:7px;padding:9px 11px;color:#c8dff5;font-size:12px;font-family:monospace;outline:none;width:100%}
 .card{background:#0b1628;border:1px solid #1a3050;border-radius:10px;padding:12px;margin-bottom:10px}
@@ -24,7 +27,8 @@ body{background:#060d1c;color:#c8dff5;font-family:monospace;min-height:100vh}
 .frow{display:flex;gap:6px;align-items:center}
 .fi{flex:1;background:#060d1c;border:1px solid #1a3050;border-radius:6px;padding:8px 10px;color:#e8f4ff;font-size:13px;font-family:monospace;outline:none}
 .fu{font-size:9px;color:#3a5f8a;min-width:62px}
-.pb{height:3px;background:#0f1e35;border-radius:2px;margin-top:10px}.pf{height:100%;background:linear-gradient(90deg,#0ea5e9,#10b981);border-radius:2px}
+.pb{height:3px;background:#0f1e35;border-radius:2px;margin-top:10px}
+.pf{height:100%;background:linear-gradient(90deg,#0ea5e9,#10b981);border-radius:2px}
 .pi{display:flex;justify-content:space-between;font-size:8px;color:#3a5f8a;margin-top:4px}
 .rg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .rc{background:#0b1628;border:1px solid #1a3050;border-radius:10px;padding:10px 12px}
@@ -32,6 +36,9 @@ body{background:#060d1c;color:#c8dff5;font-family:monospace;min-height:100vh}
 .rn{font-size:9px;color:#6b8fb5;margin-bottom:4px}.rv{font-size:18px;font-weight:bold}.ru{font-size:9px;color:#6b8fb5}.rr{font-size:8px;color:#3a5f8a;margin-top:2px}
 .tag{display:inline-block;font-size:8px;padding:2px 6px;border-radius:8px;margin-top:3px}
 .tok{background:#10b98122;color:#10b981}.twn{background:#f59e0b22;color:#f59e0b}.tbd{background:#ef444422;color:#ef4444}
+.estado-ok{background:#051a12;border:1px solid #10b981;border-radius:10px;padding:14px;text-align:center;margin-bottom:12px}
+.estado-bad{background:#1a0505;border:1px solid #ef4444;border-radius:10px;padding:14px;text-align:center;margin-bottom:12px}
+.estado-txt{font-size:16px;font-weight:bold;letter-spacing:.08em}
 .hcard{background:linear-gradient(135deg,#051828,#081f35);border:1px solid #00d4ff44;border-radius:12px;padding:16px;margin-bottom:12px;text-align:center}
 .hsc{font-size:50px;font-weight:bold;line-height:1}.hl{font-size:11px;color:#6b8fb5;margin-top:4px}
 .hbw{background:#060d1c;border-radius:6px;height:8px;margin:10px 0 8px;overflow:hidden}.hb{height:100%;border-radius:6px}
@@ -50,14 +57,17 @@ td{padding:6px;border-bottom:1px solid #0f1e35}
 tr:last-child td{border-bottom:none}
 .tv{font-weight:bold}.cok{color:#10b981}.cwn{color:#f59e0b}.cbd{color:#ef4444}
 .ai{background:#05121f;border:1px solid #00d4ff33;border-radius:10px;padding:12px;margin-bottom:8px}
-.ait{font-size:9px;color:#00d4ff;letter-spacing:.1em;margin-bottom:8px}.aitx{font-size:10px;color:#a0c8e8;line-height:1.7;white-space:pre-wrap}
+.ait{font-size:9px;color:#00d4ff;letter-spacing:.1em;margin-bottom:8px}
+.aitx{font-size:10px;color:#a0c8e8;line-height:1.7;white-space:pre-wrap}
 .bot{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:#060d1c;border-top:1px solid #1a3050;padding:10px 14px 14px}
 .br{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .btn{padding:12px;border:none;border-radius:9px;font-size:10px;font-family:monospace;cursor:pointer}
-.bc{background:#0a2540;border:1px solid #0ea5e9;color:#00d4ff}.ba{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;border:none}
+.bc{background:#0a2540;border:1px solid #0ea5e9;color:#00d4ff}
+.ba{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;border:none}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .empty{text-align:center;padding:40px 20px;color:#3a5f8a;font-size:11px;line-height:1.8}
 .rec{font-size:10px;color:#c8dff5;margin-bottom:8px;padding-left:10px;border-left:2px solid #0ea5e9;line-height:1.5}
+.chart-wrap{background:#0b1628;border:1px solid #1a3050;border-radius:10px;padding:12px;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -79,14 +89,8 @@ var FIELDS=[
 {id:'Xw',lb:'Sólidos en purga',un:'mg/L',g:'lod'},
 {id:'Qr',lb:'Caudal retorno lodos',un:'m³/día',g:'lod'}
 ];
-var GROUPS=[
-{k:'hid',t:'DATOS HIDRÁULICOS'},
-{k:'afi',t:'CALIDAD AFLUENTE (ENTRADA)'},
-{k:'efl',t:'CALIDAD EFLUENTE (SALIDA)'},
-{k:'ope',t:'PARÁMETROS OPERACIONALES'},
-{k:'lod',t:'CONTROL DE LODOS'}
-];
 var S={tab:'datos',plantName:'',operator:'',date:new Date().toISOString().split('T')[0],v:{},calc:null,diags:[],health:null,aiText:'',generating:false};
+var chartInstance=null;
 function nv(id){return parseFloat(S.v[id]);}
 function has(id){return !isNaN(nv(id));}
 function fmt(v,d){return(v!==undefined&&!isNaN(v))?v.toFixed(d||2):'—';}
@@ -102,12 +106,17 @@ var Q=nv('Q'),V=nv('V'),A=nv('A'),Di=nv('DBO_in'),Si=nv('SST_in'),Do=nv('DBO_out
 var c={};
 if(has('Q')&&has('DBO_in'))c.carga=(Q*Di)/1000;
 if(has('V')&&has('Q')&&Q>0)c.TRH=(V/Q)*24;
-if(has('Q')&&has('DBO_in')&&has('V')&&has('MLSS')&&V>0&&M>0)c.FM=(Q*Di)/(V*M);
+if(has('Q')&&has('DBO_in')&&has('V')&&has('MLSS')&&V>0&&M>0)c.FM=(Q*(Di/1000))/(V*(M/1000));
 if(has('V')&&has('MLSS')&&has('Qw')&&has('Xw')&&Qw>0&&Xw>0)c.SRT=(V*M)/(Qw*Xw);
 if(has('Q')&&has('A')&&A>0)c.CS=Q/A;
+if(has('Q')&&has('MLSS')&&has('A')&&A>0)c.flujoSolidos=(Q*(M/1000))/A;
 if(has('DBO_in')&&has('DBO_out')&&Di>0)c.remDBO=((Di-Do)/Di)*100;
 if(has('SST_in')&&has('SST_out')&&Si>0)c.remSST=((Si-So)/Si)*100;
 if(has('Qr')&&has('Q')&&Q>0)c.RR=Qr/Q;
+c.estable=true;
+if(c.FM!==undefined&&c.FM>0.5)c.estable=false;
+if(has('SVI')&&nv('SVI')>150)c.estable=false;
+if(c.flujoSolidos!==undefined&&c.flujoSolidos>120)c.estable=false;
 return c;}
 function diagAll(c){
 var d=[],OD=nv('OD'),SVI=nv('SVI'),So=nv('SST_out');
@@ -133,17 +142,29 @@ if(c.remDBO!==undefined)p.push({n:'Rem.DBO',s:sc(c.remDBO,[[90,100,10],[80,90,7]
 if(!p.length)return null;
 var tot=0;for(var i=0;i<p.length;i++)tot+=p[i].s;
 return{score:tot/p.length,params:p};}
-</script><script>
+function drawChart(c){
+var ctx=document.getElementById('migrafico');
+if(!ctx)return;
+if(chartInstance){chartInstance.destroy();chartInstance=null;}
+var labels=[],data=[],colors=[];
+if(c.FM!==undefined){labels.push('F/M');data.push(parseFloat(c.FM.toFixed(3)));colors.push(c.FM>=0.2&&c.FM<=0.5?'#10b981':c.FM<=0.6?'#f59e0b':'#ef4444');}
+if(c.TRH!==undefined){labels.push('TRH(h)');data.push(parseFloat(c.TRH.toFixed(1)));colors.push(c.TRH>=6&&c.TRH<=16?'#10b981':c.TRH>=4?'#f59e0b':'#ef4444');}
+if(c.remDBO!==undefined){labels.push('Rem.DBO(%)');data.push(parseFloat(c.remDBO.toFixed(1)));colors.push(c.remDBO>=90?'#10b981':c.remDBO>=80?'#f59e0b':'#ef4444');}
+if(c.flujoSolidos!==undefined){labels.push('Flujo Sol.');data.push(parseFloat(c.flujoSolidos.toFixed(1)));colors.push(c.flujoSolidos<=80?'#10b981':c.flujoSolidos<=120?'#f59e0b':'#ef4444');}
+if(c.CS!==undefined){labels.push('C.Sup.');data.push(parseFloat(c.CS.toFixed(1)));colors.push(c.CS<=25?'#10b981':c.CS<=40?'#f59e0b':'#ef4444');}
+chartInstance=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Indicadores',data:data,backgroundColor:colors,borderRadius:6}]},options:{responsive:true,plugins:{legend:{labels:{color:'#c8dff5',font:{family:'monospace',size:10}}}},scales:{x:{ticks:{color:'#6b8fb5'},grid:{color:'#1a3050'}},y:{ticks:{color:'#6b8fb5'},grid:{color:'#1a3050'}}}}});}
+</script>
+<script>
 function render(){
 var c=S.calc||{};
 var filled=0;
 for(var i=0;i<FIELDS.length;i++){if(S.v[FIELDS[i].id]!==undefined&&S.v[FIELDS[i].id]!=='')filled++;}
 var pct=Math.round(filled/FIELDS.length*100);
 var h='';
-h+='<div class="hdr"><div class="logo">💧</div><div><div class="hname">AQUAREPORT PRO</div><div class="hsub">PLANTA DE TRATAMIENTO</div></div>';
+h+='<div class="hdr"><div class="logo">💧</div><div><div class="hname">AQUAREPORT PRO</div><div class="hsub">DASHBOARD PTAS</div></div>';
 if(S.health){var hs=S.health.score;var hc=hs>=8?'#10b981':hs>=6?'#f59e0b':'#ef4444';h+='<div class="hidx"><div class="hidxv" style="color:'+hc+'">'+hs.toFixed(1)+'</div><div class="hidxl">ÍNDICE/10</div></div>';}
 h+='</div>';
-var NT=[{id:'datos',ic:'📋',lb:'DATOS'},{id:'calculos',ic:'⚡',lb:'CÁLCULOS'},{id:'diagnostico',ic:'🔍',lb:'DIAGNÓST.'},{id:'informe',ic:'📄',lb:'INFORME'}];
+var NT=[{id:'datos',ic:'📋',lb:'DATOS'},{id:'dashboard',ic:'📊',lb:'DASHBOARD'},{id:'diagnostico',ic:'🔍',lb:'DIAGNÓST.'},{id:'informe',ic:'📄',lb:'INFORME'}];
 h+='<div class="nav">';
 for(var ni=0;ni<NT.length;ni++){var nv2=NT[ni];h+='<button class="navb'+(S.tab===nv2.id?' on':'')+'" onclick="setTab(\''+nv2.id+'\')"><span class="navic">'+nv2.ic+'</span>'+nv2.lb+'</button>';}
 h+='</div>';
@@ -158,14 +179,25 @@ for(var fi=0;fi<FIELDS.length;fi++){var f=FIELDS[fi];if(f.g!==GR[gi].k)continue;
 h+='</div>';}
 h+='<div class="pb"><div class="pf" style="width:'+pct+'%"></div></div><div class="pi"><span>'+filled+'/'+FIELDS.length+' parámetros</span><span>'+pct+'%</span></div></div>';
 h+='<div class="bot"><div class="br"><button class="btn bc" '+(filled<3?'disabled':'')+' onclick="runCalc()">⚡ CALCULAR</button><button class="btn ba" '+(filled<3?'disabled':'')+' onclick="runAI()">🤖 INFORME IA</button></div></div>';}
-if(S.tab==='calculos'){
+if(S.tab==='dashboard'){
 h+='<div class="pg">';
 if(!S.calc){h+='<div class="empty">Ingresa datos y presiona ⚡ CALCULAR.</div>';}
 else{
-h+='<div class="st">RESULTADOS CALCULADOS</div><div class="rg">';
-var RS=[{k:'carga',n:'CARGA ORGÁNICA',u:'kg/día',rng:'Según diseño',a:0,b:99999,c:0,d:99999},{k:'TRH',n:'TRH',u:'horas',rng:'6–16 h',a:6,b:16,c:4,d:24},{k:'FM',n:'RELACIÓN F/M',u:'kg/kg·d',rng:'0.2–0.5',a:0.2,b:0.5,c:0.1,d:0.6},{k:'SRT',n:'EDAD DEL LODO',u:'días',rng:'5–15 d',a:5,b:15,c:3,d:20},{k:'CS',n:'CARGA SUPERFICIAL',u:'m³/m²·d',rng:'10–40',a:10,b:40,c:5,d:50},{k:'remDBO',n:'EFIC. DBO',u:'%',rng:'≥90%',a:90,b:100,c:80,d:90},{k:'remSST',n:'EFIC. SST',u:'%',rng:'≥85%',a:85,b:100,c:70,d:85},{k:'RR',n:'RECIRCULACIÓN',u:'Qr/Q',rng:'0.5–1.5',a:0.5,b:1.5,c:0.3,d:2.0}];
-for(var ri=0;ri<RS.length;ri++){var rr=RS[ri];var rv=c[rr.k];var rcl=rv!==undefined?stcls(rv,rr.a,rr.b,rr.c,rr.d):'';h+='<div class="rc '+rcl+'"><div class="rn">'+rr.n+'</div>';if(rv!==undefined){h+='<div class="rv" style="color:'+stcol(rcl)+'">'+fmt(rv,2)+'</div><div class="ru">'+rr.u+'</div><div class="rr">'+rr.rng+'</div><div><span class="tag '+sttag(rcl)+'">'+stlbl(rcl)+'</span></div>';}else{h+='<div class="rv" style="color:#3a5f8a">—</div><div class="ru">'+rr.u+'</div><div class="rr" style="color:#ef4444">Faltan datos</div>';}h+='</div>';}
-h+='</div>';
+if(c.estable){h+='<div class="estado-ok"><div class="estado-txt" style="color:#10b981">✅ OPERACIÓN ESTABLE</div></div>';}
+else{h+='<div class="estado-bad"><div class="estado-txt" style="color:#ef4444">⚠ OPERACIÓN INESTABLE</div></div>';}
+h+='<div class="st">REACTOR BIOLÓGICO</div><div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+var RI=[{n:'F/M',v:c.FM,u:'kg/kg·d',a:0.2,b:0.5,c:0.1,d:0.6},{n:'SRT',v:c.SRT,u:'días',a:5,b:15,c:3,d:20},{n:'TRH',v:c.TRH,u:'h',a:6,b:16,c:4,d:24},{n:'MLSS',v:has('MLSS')?nv('MLSS'):undefined,u:'mg/L',a:2000,b:4000,c:1500,d:5000}];
+for(var ri=0;ri<RI.length;ri++){var it=RI[ri];var cl=it.v!==undefined?stcls(it.v,it.a,it.b,it.c,it.d):'';h+='<div style="background:#060d1c;border-radius:8px;padding:8px 10px;border:1px solid '+(cl==='ok'?'#10b98144':cl==='wn'?'#f59e0b44':cl==='bd'?'#ef444444':'#1a3050')+'"><div style="font-size:9px;color:#6b8fb5">'+it.n+'</div><div style="font-size:15px;font-weight:bold;color:'+(cl?stcol(cl):'#c8dff5')+'">'+(it.v!==undefined?fmt(it.v,2):'—')+'</div><div style="font-size:8px;color:#3a5f8a">'+it.u+'</div></div>';}
+h+='</div></div>';
+h+='<div class="st">CLARIFICADOR SECUNDARIO</div><div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+var CI=[{n:'Carga Sup.',v:c.CS,u:'m³/m²·d',a:10,b:40,c:5,d:50},{n:'Flujo Sólidos',v:c.flujoSolidos,u:'kg/m²·d',a:0,b:80,c:0,d:120},{n:'SST efluente',v:has('SST_out')?nv('SST_out'):undefined,u:'mg/L',a:0,b:30,c:0,d:60},{n:'SVI',v:has('SVI')?nv('SVI'):undefined,u:'mL/g',a:50,b:150,c:30,d:200}];
+for(var ci2=0;ci2<CI.length;ci2++){var it2=CI[ci2];var cl2=it2.v!==undefined?stcls(it2.v,it2.a,it2.b,it2.c,it2.d):'';h+='<div style="background:#060d1c;border-radius:8px;padding:8px 10px;border:1px solid '+(cl2==='ok'?'#10b98144':cl2==='wn'?'#f59e0b44':cl2==='bd'?'#ef444444':'#1a3050')+'"><div style="font-size:9px;color:#6b8fb5">'+it2.n+'</div><div style="font-size:15px;font-weight:bold;color:'+(cl2?stcol(cl2):'#c8dff5')+'">'+(it2.v!==undefined?fmt(it2.v,2):'—')+'</div><div style="font-size:8px;color:#3a5f8a">'+it2.u+'</div></div>';}
+h+='</div></div>';
+h+='<div class="st">AIREACIÓN Y EFLUENTE</div><div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+var AI=[{n:'OD',v:has('OD')?nv('OD'):undefined,u:'mg/L',a:1.5,b:3.5,c:1.0,d:4.5},{n:'Rem. DBO',v:c.remDBO,u:'%',a:90,b:100,c:80,d:90},{n:'Rem. SST',v:c.remSST,u:'%',a:85,b:100,c:70,d:85},{n:'DBO efluente',v:has('DBO_out')?nv('DBO_out'):undefined,u:'mg/L',a:0,b:30,c:0,d:60}];
+for(var ai2=0;ai2<AI.length;ai2++){var it3=AI[ai2];var cl3=it3.v!==undefined?stcls(it3.v,it3.a,it3.b,it3.c,it3.d):'';h+='<div style="background:#060d1c;border-radius:8px;padding:8px 10px;border:1px solid '+(cl3==='ok'?'#10b98144':cl3==='wn'?'#f59e0b44':cl3==='bd'?'#ef444444':'#1a3050')+'"><div style="font-size:9px;color:#6b8fb5">'+it3.n+'</div><div style="font-size:15px;font-weight:bold;color:'+(cl3?stcol(cl3):'#c8dff5')+'">'+(it3.v!==undefined?fmt(it3.v,2):'—')+'</div><div style="font-size:8px;color:#3a5f8a">'+it3.u+'</div></div>';}
+h+='</div></div>';
+h+='<div class="st">GRÁFICO DE INDICADORES</div><div class="chart-wrap"><canvas id="migrafico"></canvas></div>';
 if(S.health){var hs2=S.health.score;var hc2=hs2>=8?'#10b981':hs2>=6?'#f59e0b':'#ef4444';h+='<div class="st">ÍNDICE DE SALUD</div><div class="hcard"><div class="hsc" style="color:'+hc2+'">'+hs2.toFixed(1)+'<span style="font-size:20px;color:#6b8fb5">/10</span></div><div class="hl">'+(hs2>=8?'Operación estable':hs2>=6?'Requiere atención':'Estado crítico')+'</div><div class="hbw"><div class="hb" style="width:'+(hs2*10)+'%;background:'+hc2+'"></div></div><div class="hpg">';for(var pi=0;pi<S.health.params.length;pi++){var pp=S.health.params[pi];var pc=pp.s>=8?'#10b981':pp.s>=5?'#f59e0b':'#ef4444';h+='<div class="hp"><span class="hpn">'+pp.n+'</span><span class="hps" style="color:'+pc+'">'+pp.s+'/10</span></div>';}h+='</div></div>';}}
 h+='</div>';}
 if(S.tab==='diagnostico'){
@@ -181,7 +213,7 @@ h+='<div class="rsec"><div class="rsh">1 — DATOS DE OPERACIÓN</div><table><tr
 for(var fk=0;fk<FIELDS.length;fk++){var ff=FIELDS[fk];h+='<tr><td>'+ff.lb+'</td><td class="tv">'+(S.v[ff.id]||'—')+'</td><td style="color:#3a5f8a">'+ff.un+'</td></tr>';}
 h+='</table></div>';
 h+='<div class="rsec"><div class="rsh">2 — RESULTADOS CALCULADOS</div><table><tr><th>PARÁMETRO</th><th>RESULTADO</th><th>RANGO</th><th>ESTADO</th></tr>';
-var CR=[{k:'carga',n:'Carga Orgánica',u:'kg/día',rng:'—',a:0,b:99999,c2:0,d:99999},{k:'TRH',n:'TRH',u:'h',rng:'6–16',a:6,b:16,c2:4,d:24},{k:'FM',n:'F/M',u:'kg/kg·d',rng:'0.2–0.5',a:0.2,b:0.5,c2:0.1,d:0.6},{k:'SRT',n:'SRT',u:'días',rng:'5–15',a:5,b:15,c2:3,d:20},{k:'CS',n:'C.Superficial',u:'m³/m²·d',rng:'10–40',a:10,b:40,c2:5,d:50},{k:'remDBO',n:'Efic.DBO',u:'%',rng:'≥90%',a:90,b:100,c2:80,d:90},{k:'remSST',n:'Efic.SST',u:'%',rng:'≥85%',a:85,b:100,c2:70,d:85}];
+var CR=[{k:'carga',n:'Carga Orgánica',u:'kg/día',rng:'—',a:0,b:99999,c2:0,d:99999},{k:'TRH',n:'TRH',u:'h',rng:'6–16',a:6,b:16,c2:4,d:24},{k:'FM',n:'F/M',u:'kg/kg·d',rng:'0.2–0.5',a:0.2,b:0.5,c2:0.1,d:0.6},{k:'SRT',n:'SRT',u:'días',rng:'5–15',a:5,b:15,c2:3,d:20},{k:'CS',n:'Carga Superficial',u:'m³/m²·d',rng:'10–40',a:10,b:40,c2:5,d:50},{k:'flujoSolidos',n:'Flujo Sólidos',u:'kg/m²·d',rng:'≤120',a:0,b:80,c2:0,d:120},{k:'remDBO',n:'Efic. DBO',u:'%',rng:'≥90%',a:90,b:100,c2:80,d:90},{k:'remSST',n:'Efic. SST',u:'%',rng:'≥85%',a:85,b:100,c2:70,d:85}];
 for(var cri=0;cri<CR.length;cri++){var cr=CR[cri];var crv=c[cr.k];var crcl=crv!==undefined?stcls(crv,cr.a,cr.b,cr.c2,cr.d):'';var tc=ttcls(crcl);h+='<tr><td>'+cr.n+'</td><td class="tv '+tc+'">'+(crv!==undefined?fmt(crv,2)+' '+cr.u:'—')+'</td><td style="font-size:9px;color:#3a5f8a">'+cr.rng+'</td><td class="'+tc+'" style="font-size:9px">'+stlbl(crcl)+'</td></tr>';}
 h+='</table></div>';
 if(S.diags&&S.diags.length){h+='<div class="rsec"><div class="rsh">3 — DIAGNÓSTICO</div>';for(var dk=0;dk<S.diags.length;dk++){var dg=S.diags[dk];var dc2=dg.lv==='critical'?'#ef4444':dg.lv==='warning'?'#f59e0b':'#10b981';h+='<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:bold;color:'+dc2+'">'+dg.ic+' '+dg.tt+'</div><div style="font-size:9.5px;color:#6b8fb5;line-height:1.5;margin-top:2px">'+dg.dc+'</div></div>';}h+='</div>';}
@@ -196,15 +228,17 @@ if(has('SVI')&&nv('SVI')>150)recs.push('Investigar filamentosas por microscopía
 if(has('SST_out')&&nv('SST_out')>30)recs.push('Revisar mecanismo de raspado del clarificador.');
 if(c.CS!==undefined&&c.CS>40)recs.push('Evaluar reducción de caudal pico.');
 if(c.TRH!==undefined&&c.TRH<6)recs.push('TRH bajo. Evaluar aumento del volumen del reactor.');
-if(!recs.length){recs.push('Planta en parámetros óptimos. Mantener condiciones actuales.');recs.push('Continuar monitoreo diario de OD, MLSS y SVI.');}
+if(!recs.length){recs.push('Planta en parámetros óptimos.');recs.push('Continuar monitoreo diario de OD, MLSS y SVI.');}
 for(var ri2=0;ri2<recs.length;ri2++)h+='<div class="rec">'+(ri2+1)+'. '+recs[ri2]+'</div>';
 h+='</div>';
 if(S.health){var hs3=S.health.score;var hc3=hs3>=8?'#10b981':hs3>=6?'#f59e0b':'#ef4444';h+='<div class="rsec"><div class="rsh">5 — ÍNDICE DE SALUD</div><div style="text-align:center;padding:12px 0"><span style="font-size:42px;font-weight:bold;color:'+hc3+'">'+hs3.toFixed(1)+'</span><span style="font-size:16px;color:#6b8fb5">/10</span></div><div style="text-align:center;font-size:11px;color:#6b8fb5;margin-bottom:12px">'+(hs3>=8?'Operación estable':hs3>=6?'Requiere atención':'Estado crítico')+'</div><table><tr><th>PARÁMETRO</th><th>VALOR</th><th>PUNTAJE</th></tr>';for(var hpi=0;hpi<S.health.params.length;hpi++){var hp=S.health.params[hpi];var hpc=hp.s>=8?'cok':hp.s>=5?'cwn':'cbd';h+='<tr><td>'+hp.n+'</td><td style="color:#6b8fb5">'+hp.v+'</td><td class="tv '+hpc+'">'+hp.s+'/10</td></tr>';}h+='</table></div>';}
 if(S.generating)h+='<div style="text-align:center;padding:16px;font-size:11px;color:#00d4ff">⏳ Generando análisis con IA...</div>';
 if(S.aiText)h+='<div class="ai"><div class="ait">🤖 ANÁLISIS INTELIGENTE</div><div class="aitx">'+S.aiText+'</div></div>';}
 h+='</div>';}
-document.getElementById('app').innerHTML=h;}
-function runCalc(){S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='calculos';render();}
+document.getElementById('app').innerHTML=h;
+if(S.tab==='dashboard'&&S.calc){drawChart(S.calc);}
+}
+function runCalc(){S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='dashboard';render();}
 function runAI(){
 S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='informe';S.generating=true;render();
 var c=S.calc;
