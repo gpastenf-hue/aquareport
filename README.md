@@ -178,7 +178,7 @@ h+='<div class="st">'+GR[gi].t+'</div><div class="card">';
 for(var fi=0;fi<FIELDS.length;fi++){var f=FIELDS[fi];if(f.g!==GR[gi].k)continue;h+='<div class="fl">'+f.lb+'</div><div class="frow"><input class="fi" type="number" placeholder="—" onchange="S.v[\''+f.id+'\']=this.value" value="'+escH(S.v[f.id]||'')+'"><span class="fu">'+f.un+'</span></div>';}
 h+='</div>';}
 h+='<div class="pb"><div class="pf" style="width:'+pct+'%"></div></div><div class="pi"><span>'+filled+'/'+FIELDS.length+' parámetros</span><span>'+pct+'%</span></div></div>';
-h+='<div class="bot"><div class="br"><button class="btn bc" '+(filled<3?'disabled':'')+' onclick="runCalc()">⚡ CALCULAR</button><button class="btn ba" '+(filled<3?'disabled':'')+' onclick="runAI()">🤖 INFORME IA</button></div></div>';}
+h+='<div class="bot"><div class="br"><button class="btn bc" '+(filled<3?'disabled':'')+' onclick="runCalc()">⚡ CALCULAR</button><button class="btn ba" '+(filled<3?'disabled':'')+' onclick="runAI()">📄 GENERAR INFORME</button></div></div>';}
 if(S.tab==='dashboard'){
 h+='<div class="pg">';
 if(!S.calc){h+='<div class="empty">Ingresa datos y presiona ⚡ CALCULAR.</div>';}
@@ -207,7 +207,7 @@ else{var LV=[{k:'critical',t:'⚠ CRÍTICO',c:'#ef4444'},{k:'warning',t:'ADVERTE
 h+='</div>';}
 if(S.tab==='informe'){
 h+='<div class="pg">';
-if(!S.calc){h+='<div class="empty">Ingresa datos y presiona 🤖 INFORME IA.</div>';}
+if(!S.calc){h+='<div class="empty">Ingresa datos y presiona 🤖 📄 GENERAR INFORME.</div>';}
 else{
 h+='<div class="rsec"><div class="rsh">1 — DATOS DE OPERACIÓN</div><table><tr><th>PARÁMETRO</th><th>VALOR</th><th>UNIDAD</th></tr><tr><td>Planta</td><td class="tv">'+escH(S.plantName||'—')+'</td><td></td></tr><tr><td>Operador</td><td class="tv">'+escH(S.operator||'—')+'</td><td></td></tr><tr><td>Fecha</td><td class="tv">'+S.date+'</td><td></td></tr>';
 for(var fk=0;fk<FIELDS.length;fk++){var ff=FIELDS[fk];h+='<tr><td>'+ff.lb+'</td><td class="tv">'+(S.v[ff.id]||'—')+'</td><td style="color:#3a5f8a">'+ff.un+'</td></tr>';}
@@ -240,17 +240,42 @@ if(S.tab==='dashboard'&&S.calc){drawChart(S.calc);}
 }
 function runCalc(){S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='dashboard';render();}
 function runAI(){
-S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='informe';S.generating=true;render();
+S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='informe';
 var c=S.calc;
-var sum='Planta:'+(S.plantName||'Sin nombre')+' Fecha:'+S.date+'. Q='+S.v.Q+' m3/dia, V='+S.v.V+' m3, DBO_in='+S.v.DBO_in+', DBO_out='+S.v.DBO_out+', SST_out='+S.v.SST_out+' mg/L, MLSS='+S.v.MLSS+', OD='+S.v.OD+' mg/L, SVI='+S.v.SVI+' mL/g.';
-if(c.FM!==undefined)sum+=' F/M='+c.FM.toFixed(3)+',';
-if(c.SRT!==undefined)sum+=' SRT='+c.SRT.toFixed(1)+'d,';
-if(c.TRH!==undefined)sum+=' TRH='+c.TRH.toFixed(1)+'h,';
-if(c.CS!==undefined)sum+=' CS='+c.CS.toFixed(1)+'.';
-if(S.health)sum+=' Indice:'+S.health.score.toFixed(1)+'/10.';
-var al=[];for(var i=0;i<S.diags.length;i++){if(S.diags[i].lv!=='good')al.push(S.diags[i].tt);}
-if(al.length)sum+=' Alertas:'+al.join(', ')+'.';
-fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:'Eres ingeniero especialista en plantas de tratamiento de aguas servidas. Analiza estos parametros: '+sum+' Responde con: 1. ESTADO GENERAL DEL REACTOR. 2. ESTADO DEL CLARIFICADOR. 3. CALIDAD DEL EFLUENTE. 4. RECOMENDACIONES (3-5 acciones numeradas).'}]})}).then(function(r){return r.json();}).then(function(d){S.aiText=d.content?d.content.map(function(b){return b.text||'';}).join('\n'):'Sin respuesta.';S.generating=false;render();}).catch(function(){S.aiText='Error al conectar con IA.';S.generating=false;render();});}
+var crit=S.diags.filter(function(d){return d.lv==='critical';});
+var warn=S.diags.filter(function(d){return d.lv==='warning';});
+var hs=S.health?S.health.score:null;
+var txt='';
+txt+='1. ESTADO GENERAL DEL REACTOR BIOLÓGICO\n';
+if(c.FM!==undefined&&c.SRT!==undefined){
+if(c.estable)txt+='El reactor opera en condiciones estables. F/M='+c.FM.toFixed(3)+' kg/kg·d y SRT='+c.SRT.toFixed(1)+' días dentro de rangos óptimos.\n';
+else txt+='El reactor presenta condiciones inestables. Se requiere intervención operacional para restablecer el equilibrio biológico.\n';
+}else{txt+='Datos insuficientes para evaluar el reactor. Ingresar MLSS, caudal de purga y DBO.\n';}
+txt+='\n2. ESTADO DEL CLARIFICADOR SECUNDARIO\n';
+if(c.CS!==undefined){
+if(c.CS<=40)txt+='Clarificador operando dentro de límites hidráulicos normales. Carga superficial='+c.CS.toFixed(1)+' m³/m²·d.\n';
+else txt+='Clarificador sobrecargado hidráulicamente. Carga superficial='+c.CS.toFixed(1)+' m³/m²·d supera el límite recomendado (40 m³/m²·d).\n';
+}else{txt+='Ingresar área del clarificador para evaluar carga superficial.\n';}
+txt+='\n3. EVALUACIÓN DE LA CALIDAD DEL EFLUENTE\n';
+if(c.remDBO!==undefined){
+if(c.remDBO>=90)txt+='Efluente de buena calidad. Remoción de DBO='+c.remDBO.toFixed(1)+'%, cumple estándar mínimo (90%).\n';
+else txt+='Calidad del efluente deficiente. Remoción de DBO='+c.remDBO.toFixed(1)+'%, bajo el estándar mínimo (90%). Revisar proceso biológico.\n';
+}else{txt+='Ingresar DBO afluente y efluente para evaluar calidad del efluente.\n';}
+txt+='\n4. RECOMENDACIONES PRIORITARIAS\n';
+var recs=[];
+if(has('OD')&&nv('OD')<1.5)recs.push('Aumentar caudal de aire en sopladores y verificar difusores.');
+if(c.FM!==undefined&&c.FM>0.5)recs.push('Reducir caudal de entrada o aumentar MLSS para disminuir F/M.');
+if(c.FM!==undefined&&c.FM<0.1)recs.push('Reducir tasa de purga para incrementar edad del lodo.');
+if(c.SRT!==undefined&&c.SRT<5)recs.push('Reducir Qw para aumentar el SRT por encima de 5 días.');
+if(c.SRT!==undefined&&c.SRT>20)recs.push('Incrementar purga para rejuvenecer la población microbiana.');
+if(has('SVI')&&nv('SVI')>150)recs.push('Investigar presencia de bacterias filamentosas por microscopía.');
+if(has('SST_out')&&nv('SST_out')>30)recs.push('Revisar mecanismo de raspado del clarificador secundario.');
+if(c.CS!==undefined&&c.CS>40)recs.push('Evaluar reducción del caudal pico o ampliación del clarificador.');
+if(c.TRH!==undefined&&c.TRH<6)recs.push('TRH insuficiente. Evaluar reducción de caudal o aumento del reactor.');
+if(!recs.length)recs.push('Mantener condiciones actuales. Planta operando en parámetros óptimos.');
+for(var i=0;i<recs.length;i++)txt+=( i+1)+'. '+recs[i]+'\n';
+if(hs!==null){txt+='\n5. ÍNDICE DE SALUD: '+hs.toFixed(1)+'/10 — '+(hs>=8?'Operación estable':hs>=6?'Requiere atención':'Estado crítico')+'.\n';}
+S.aiText=txt;S.generating=false;render();}
 render();
 </script>
 </body>
