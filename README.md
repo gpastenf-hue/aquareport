@@ -62,3 +62,162 @@ tr:last-child td{border-bottom:none}
 </head>
 <body>
 <div id="app">Cargando...</div>
+<script>
+var FIELDS=[
+{id:'Q',lb:'Caudal promedio',un:'m³/día',g:'hid'},
+{id:'Qmax',lb:'Caudal máximo',un:'m³/día',g:'hid'},
+{id:'V',lb:'Volumen reactor biológico',un:'m³',g:'hid'},
+{id:'A',lb:'Área clarificador',un:'m²',g:'hid'},
+{id:'DBO_in',lb:'DBO afluente (entrada)',un:'mg/L',g:'afi'},
+{id:'SST_in',lb:'SST afluente (entrada)',un:'mg/L',g:'afi'},
+{id:'DBO_out',lb:'DBO efluente (salida)',un:'mg/L',g:'efl'},
+{id:'SST_out',lb:'SST efluente (salida)',un:'mg/L',g:'efl'},
+{id:'MLSS',lb:'MLSS — Sólidos en reactor',un:'mg/L',g:'ope'},
+{id:'OD',lb:'Oxígeno disuelto',un:'mg/L',g:'ope'},
+{id:'SVI',lb:'Índice volumétrico lodo',un:'mL/g',g:'ope'},
+{id:'Qw',lb:'Caudal de purga',un:'m³/día',g:'lod'},
+{id:'Xw',lb:'Sólidos en purga',un:'mg/L',g:'lod'},
+{id:'Qr',lb:'Caudal retorno lodos',un:'m³/día',g:'lod'}
+];
+var GROUPS=[
+{k:'hid',t:'DATOS HIDRÁULICOS'},
+{k:'afi',t:'CALIDAD AFLUENTE (ENTRADA)'},
+{k:'efl',t:'CALIDAD EFLUENTE (SALIDA)'},
+{k:'ope',t:'PARÁMETROS OPERACIONALES'},
+{k:'lod',t:'CONTROL DE LODOS'}
+];
+var S={tab:'datos',plantName:'',operator:'',date:new Date().toISOString().split('T')[0],v:{},calc:null,diags:[],health:null,aiText:'',generating:false};
+function nv(id){return parseFloat(S.v[id]);}
+function has(id){return !isNaN(nv(id));}
+function fmt(v,d){return(v!==undefined&&!isNaN(v))?v.toFixed(d||2):'—';}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function setTab(t){S.tab=t;render();}
+function stcls(v,a,b,c,d){if(v===undefined||isNaN(v))return'';if(v>=a&&v<=b)return'ok';if(v>=c&&v<=d)return'wn';return'bd';}
+function stcol(c){return c==='ok'?'#10b981':c==='wn'?'#f59e0b':c==='bd'?'#ef4444':'#00d4ff';}
+function sttag(c){return c==='ok'?'tok':c==='wn'?'twn':c==='bd'?'tbd':'';}
+function stlbl(c){return c==='ok'?'✓ Normal':c==='wn'?'⚠ Revisar':c==='bd'?'✗ Crítico':'—';}
+function ttcls(c){return c==='ok'?'cok':c==='wn'?'cwn':c==='bd'?'cbd':'';}
+function calcAll(){
+var Q=nv('Q'),V=nv('V'),A=nv('A'),Di=nv('DBO_in'),Si=nv('SST_in'),Do=nv('DBO_out'),So=nv('SST_out'),M=nv('MLSS'),Qw=nv('Qw'),Xw=nv('Xw'),Qr=nv('Qr');
+var c={};
+if(has('Q')&&has('DBO_in'))c.carga=(Q*Di)/1000;
+if(has('V')&&has('Q')&&Q>0)c.TRH=(V/Q)*24;
+if(has('Q')&&has('DBO_in')&&has('V')&&has('MLSS')&&V>0&&M>0)c.FM=(Q*Di)/(V*M);
+if(has('V')&&has('MLSS')&&has('Qw')&&has('Xw')&&Qw>0&&Xw>0)c.SRT=(V*M)/(Qw*Xw);
+if(has('Q')&&has('A')&&A>0)c.CS=Q/A;
+if(has('DBO_in')&&has('DBO_out')&&Di>0)c.remDBO=((Di-Do)/Di)*100;
+if(has('SST_in')&&has('SST_out')&&Si>0)c.remSST=((Si-So)/Si)*100;
+if(has('Qr')&&has('Q')&&Q>0)c.RR=Qr/Q;
+return c;}
+function diagAll(c){
+var d=[],OD=nv('OD'),SVI=nv('SVI'),So=nv('SST_out');
+function add(l,i,t,dc){d.push({lv:l,ic:i,tt:t,dc:dc});}
+if(has('OD')){if(OD<1.0)add('critical','🚨','Aireación crítica','OD='+OD+' mg/L. Riesgo anóxico. Aumentar aireación urgente.');else if(OD<1.5)add('warning','⚠️','Aireación insuficiente','OD='+OD+' mg/L. Bajo rango (1.5–3.0). Incrementar aire.');else if(OD>4.0)add('warning','⚠️','Sobroxigenación','OD='+OD+' mg/L. Reducir sopladores.');else add('good','✅','Aireación correcta','OD='+OD+' mg/L. Condiciones aerobias óptimas.');}
+if(c.FM!==undefined){if(c.FM>0.6)add('critical','🚨','Sobrecarga orgánica severa','F/M='+c.FM.toFixed(3)+'. Reducir caudal urgente.');else if(c.FM>0.5)add('warning','⚠️','Sobrecarga orgánica','F/M='+c.FM.toFixed(3)+'. Sobre rango (0.2–0.5).');else if(c.FM<0.05)add('critical','🚨','Lodo envejecido severo','F/M='+c.FM.toFixed(3)+'. Posible bulking.');else if(c.FM<0.1)add('warning','⚠️','Lodo envejecido','F/M='+c.FM.toFixed(3)+'. Reducir purga.');else add('good','✅','F/M óptima','F/M='+c.FM.toFixed(3)+'. Equilibrio correcto.');}
+if(c.SRT!==undefined){if(c.SRT<3)add('critical','🚨','SRT crítico','SRT='+c.SRT.toFixed(1)+' días. Reducir purga urgente.');else if(c.SRT<5)add('warning','⚠️','SRT bajo','SRT='+c.SRT.toFixed(1)+' días. Reducir purga.');else if(c.SRT>20)add('warning','⚠️','SRT elevado','SRT='+c.SRT.toFixed(1)+' días. Incrementar purga.');else add('good','✅','Edad lodo adecuada','SRT='+c.SRT.toFixed(1)+' días. Rango óptimo.');}
+if(has('SVI')){if(SVI>200)add('critical','🚨','Bulking severo','SVI='+SVI+' mL/g. Microscopía urgente.');else if(SVI>150)add('warning','⚠️','Bulking probable','SVI='+SVI+' mL/g. Monitorear filamentosas.');else if(SVI<50)add('warning','⚠️','Lodo muy denso','SVI='+SVI+' mL/g. Revisar mezcla.');else add('good','✅','Sedimentabilidad correcta','SVI='+SVI+' mL/g.');}
+if(has('SST_out')){if(So>60)add('critical','🚨','Arrastre crítico','SST='+So+' mg/L. Falla en clarificador.');else if(So>30)add('warning','⚠️','Arrastre de lodos','SST='+So+' mg/L. Sobre límite (30 mg/L).');else add('good','✅','Clarificación correcta','SST='+So+' mg/L. Dentro del límite.');}
+if(c.CS!==undefined){if(c.CS>50)add('critical','🚨','Clarificador sobrecargado','CS='+c.CS.toFixed(1)+' m³/m²·d.');else if(c.CS>40)add('warning','⚠️','Carga superficial elevada','CS='+c.CS.toFixed(1)+' m³/m²·d. Al límite.');else add('good','✅','Clarificador normal','CS='+c.CS.toFixed(1)+' m³/m²·d.');}
+if(c.TRH!==undefined){if(c.TRH<4)add('critical','🚨','TRH insuficiente','TRH='+c.TRH.toFixed(1)+' h. Tiempo crítico.');else if(c.TRH<6)add('warning','⚠️','TRH bajo','TRH='+c.TRH.toFixed(1)+' h.');else if(c.TRH>24)add('warning','⚠️','TRH elevado','TRH='+c.TRH.toFixed(1)+' h. Riesgo séptico.');else add('good','✅','TRH adecuado','TRH='+c.TRH.toFixed(1)+' h.');}
+return d;}
+function healthAll(c){
+function sc(v,r){for(var i=0;i<r.length;i++){if(v>=r[i][0]&&v<=r[i][1])return r[i][2];}return 2;}
+var p=[];
+if(c.FM!==undefined)p.push({n:'F/M',s:sc(c.FM,[[0.2,0.5,10],[0.1,0.6,6]]),v:c.FM.toFixed(3)});
+if(c.SRT!==undefined)p.push({n:'SRT',s:sc(c.SRT,[[5,15,10],[3,20,6]]),v:c.SRT.toFixed(1)+'d'});
+if(has('SVI'))p.push({n:'SVI',s:sc(nv('SVI'),[[50,150,10],[30,200,6]]),v:nv('SVI')+''});
+if(has('OD'))p.push({n:'OD',s:sc(nv('OD'),[[1.5,3.5,10],[1.0,4.5,6]]),v:nv('OD')+''});
+if(c.TRH!==undefined)p.push({n:'TRH',s:sc(c.TRH,[[6,16,10],[4,24,6]]),v:c.TRH.toFixed(1)+'h'});
+if(c.CS!==undefined)p.push({n:'C.Sup.',s:sc(c.CS,[[0,25,10],[0,40,6]]),v:c.CS.toFixed(1)});
+if(c.remDBO!==undefined)p.push({n:'Rem.DBO',s:sc(c.remDBO,[[90,100,10],[80,90,7]]),v:c.remDBO.toFixed(1)+'%'});
+if(!p.length)return null;
+var tot=0;for(var i=0;i<p.length;i++)tot+=p[i].s;
+return{score:tot/p.length,params:p};}
+</script><script>
+function render(){
+var c=S.calc||{};
+var filled=0;
+for(var i=0;i<FIELDS.length;i++){if(S.v[FIELDS[i].id]!==undefined&&S.v[FIELDS[i].id]!=='')filled++;}
+var pct=Math.round(filled/FIELDS.length*100);
+var h='';
+h+='<div class="hdr"><div class="logo">💧</div><div><div class="hname">AQUAREPORT PRO</div><div class="hsub">PLANTA DE TRATAMIENTO</div></div>';
+if(S.health){var hs=S.health.score;var hc=hs>=8?'#10b981':hs>=6?'#f59e0b':'#ef4444';h+='<div class="hidx"><div class="hidxv" style="color:'+hc+'">'+hs.toFixed(1)+'</div><div class="hidxl">ÍNDICE/10</div></div>';}
+h+='</div>';
+var NT=[{id:'datos',ic:'📋',lb:'DATOS'},{id:'calculos',ic:'⚡',lb:'CÁLCULOS'},{id:'diagnostico',ic:'🔍',lb:'DIAGNÓST.'},{id:'informe',ic:'📄',lb:'INFORME'}];
+h+='<div class="nav">';
+for(var ni=0;ni<NT.length;ni++){var nv2=NT[ni];h+='<button class="navb'+(S.tab===nv2.id?' on':'')+'" onclick="setTab(\''+nv2.id+'\')"><span class="navic">'+nv2.ic+'</span>'+nv2.lb+'</button>';}
+h+='</div>';
+if(S.tab==='datos'){
+h+='<div class="pg"><div class="st">IDENTIFICACIÓN</div>';
+h+='<div class="g2"><input class="inp" onchange="S.plantName=this.value" placeholder="Nombre planta" value="'+escH(S.plantName)+'"><input class="inp" onchange="S.operator=this.value" placeholder="Operador" value="'+escH(S.operator)+'"></div>';
+h+='<input class="inp" type="date" onchange="S.date=this.value" value="'+S.date+'" style="margin-bottom:10px">';
+var GR=[{k:'hid',t:'DATOS HIDRÁULICOS'},{k:'afi',t:'CALIDAD AFLUENTE'},{k:'efl',t:'CALIDAD EFLUENTE'},{k:'ope',t:'PARÁMETROS OPERACIONALES'},{k:'lod',t:'CONTROL DE LODOS'}];
+for(var gi=0;gi<GR.length;gi++){
+h+='<div class="st">'+GR[gi].t+'</div><div class="card">';
+for(var fi=0;fi<FIELDS.length;fi++){var f=FIELDS[fi];if(f.g!==GR[gi].k)continue;h+='<div class="fl">'+f.lb+'</div><div class="frow"><input class="fi" type="number" placeholder="—" onchange="S.v[\''+f.id+'\']=this.value" value="'+escH(S.v[f.id]||'')+'"><span class="fu">'+f.un+'</span></div>';}
+h+='</div>';}
+h+='<div class="pb"><div class="pf" style="width:'+pct+'%"></div></div><div class="pi"><span>'+filled+'/'+FIELDS.length+' parámetros</span><span>'+pct+'%</span></div></div>';
+h+='<div class="bot"><div class="br"><button class="btn bc" '+(filled<3?'disabled':'')+' onclick="runCalc()">⚡ CALCULAR</button><button class="btn ba" '+(filled<3?'disabled':'')+' onclick="runAI()">🤖 INFORME IA</button></div></div>';}
+if(S.tab==='calculos'){
+h+='<div class="pg">';
+if(!S.calc){h+='<div class="empty">Ingresa datos y presiona ⚡ CALCULAR.</div>';}
+else{
+h+='<div class="st">RESULTADOS CALCULADOS</div><div class="rg">';
+var RS=[{k:'carga',n:'CARGA ORGÁNICA',u:'kg/día',rng:'Según diseño',a:0,b:99999,c:0,d:99999},{k:'TRH',n:'TRH',u:'horas',rng:'6–16 h',a:6,b:16,c:4,d:24},{k:'FM',n:'RELACIÓN F/M',u:'kg/kg·d',rng:'0.2–0.5',a:0.2,b:0.5,c:0.1,d:0.6},{k:'SRT',n:'EDAD DEL LODO',u:'días',rng:'5–15 d',a:5,b:15,c:3,d:20},{k:'CS',n:'CARGA SUPERFICIAL',u:'m³/m²·d',rng:'10–40',a:10,b:40,c:5,d:50},{k:'remDBO',n:'EFIC. DBO',u:'%',rng:'≥90%',a:90,b:100,c:80,d:90},{k:'remSST',n:'EFIC. SST',u:'%',rng:'≥85%',a:85,b:100,c:70,d:85},{k:'RR',n:'RECIRCULACIÓN',u:'Qr/Q',rng:'0.5–1.5',a:0.5,b:1.5,c:0.3,d:2.0}];
+for(var ri=0;ri<RS.length;ri++){var rr=RS[ri];var rv=c[rr.k];var rcl=rv!==undefined?stcls(rv,rr.a,rr.b,rr.c,rr.d):'';h+='<div class="rc '+rcl+'"><div class="rn">'+rr.n+'</div>';if(rv!==undefined){h+='<div class="rv" style="color:'+stcol(rcl)+'">'+fmt(rv,2)+'</div><div class="ru">'+rr.u+'</div><div class="rr">'+rr.rng+'</div><div><span class="tag '+sttag(rcl)+'">'+stlbl(rcl)+'</span></div>';}else{h+='<div class="rv" style="color:#3a5f8a">—</div><div class="ru">'+rr.u+'</div><div class="rr" style="color:#ef4444">Faltan datos</div>';}h+='</div>';}
+h+='</div>';
+if(S.health){var hs2=S.health.score;var hc2=hs2>=8?'#10b981':hs2>=6?'#f59e0b':'#ef4444';h+='<div class="st">ÍNDICE DE SALUD</div><div class="hcard"><div class="hsc" style="color:'+hc2+'">'+hs2.toFixed(1)+'<span style="font-size:20px;color:#6b8fb5">/10</span></div><div class="hl">'+(hs2>=8?'Operación estable':hs2>=6?'Requiere atención':'Estado crítico')+'</div><div class="hbw"><div class="hb" style="width:'+(hs2*10)+'%;background:'+hc2+'"></div></div><div class="hpg">';for(var pi=0;pi<S.health.params.length;pi++){var pp=S.health.params[pi];var pc=pp.s>=8?'#10b981':pp.s>=5?'#f59e0b':'#ef4444';h+='<div class="hp"><span class="hpn">'+pp.n+'</span><span class="hps" style="color:'+pc+'">'+pp.s+'/10</span></div>';}h+='</div></div>';}}
+h+='</div>';}
+if(S.tab==='diagnostico'){
+h+='<div class="pg">';
+if(!S.diags||!S.diags.length){h+='<div class="empty">Ingresa datos y presiona ⚡ CALCULAR.</div>';}
+else{var LV=[{k:'critical',t:'⚠ CRÍTICO',c:'#ef4444'},{k:'warning',t:'ADVERTENCIAS',c:'#f59e0b'},{k:'good',t:'CORRECTO',c:'#10b981'}];for(var li=0;li<LV.length;li++){var lv=LV[li];var items=[];for(var di=0;di<S.diags.length;di++){if(S.diags[di].lv===lv.k)items.push(S.diags[di]);}if(!items.length)continue;h+='<div class="st" style="color:'+lv.c+'">'+lv.t+' ('+items.length+')</div><div class="dl">';for(var ii=0;ii<items.length;ii++){var itm=items[ii];h+='<div class="di '+itm.lv+'"><div style="font-size:16px;margin-bottom:4px">'+itm.ic+'</div><div class="dit" style="color:'+lv.c+'">'+itm.tt+'</div><div class="did">'+itm.dc+'</div></div>';}h+='</div>';}}
+h+='</div>';}
+if(S.tab==='informe'){
+h+='<div class="pg">';
+if(!S.calc){h+='<div class="empty">Ingresa datos y presiona 🤖 INFORME IA.</div>';}
+else{
+h+='<div class="rsec"><div class="rsh">1 — DATOS DE OPERACIÓN</div><table><tr><th>PARÁMETRO</th><th>VALOR</th><th>UNIDAD</th></tr><tr><td>Planta</td><td class="tv">'+escH(S.plantName||'—')+'</td><td></td></tr><tr><td>Operador</td><td class="tv">'+escH(S.operator||'—')+'</td><td></td></tr><tr><td>Fecha</td><td class="tv">'+S.date+'</td><td></td></tr>';
+for(var fk=0;fk<FIELDS.length;fk++){var ff=FIELDS[fk];h+='<tr><td>'+ff.lb+'</td><td class="tv">'+(S.v[ff.id]||'—')+'</td><td style="color:#3a5f8a">'+ff.un+'</td></tr>';}
+h+='</table></div>';
+h+='<div class="rsec"><div class="rsh">2 — RESULTADOS CALCULADOS</div><table><tr><th>PARÁMETRO</th><th>RESULTADO</th><th>RANGO</th><th>ESTADO</th></tr>';
+var CR=[{k:'carga',n:'Carga Orgánica',u:'kg/día',rng:'—',a:0,b:99999,c2:0,d:99999},{k:'TRH',n:'TRH',u:'h',rng:'6–16',a:6,b:16,c2:4,d:24},{k:'FM',n:'F/M',u:'kg/kg·d',rng:'0.2–0.5',a:0.2,b:0.5,c2:0.1,d:0.6},{k:'SRT',n:'SRT',u:'días',rng:'5–15',a:5,b:15,c2:3,d:20},{k:'CS',n:'C.Superficial',u:'m³/m²·d',rng:'10–40',a:10,b:40,c2:5,d:50},{k:'remDBO',n:'Efic.DBO',u:'%',rng:'≥90%',a:90,b:100,c2:80,d:90},{k:'remSST',n:'Efic.SST',u:'%',rng:'≥85%',a:85,b:100,c2:70,d:85}];
+for(var cri=0;cri<CR.length;cri++){var cr=CR[cri];var crv=c[cr.k];var crcl=crv!==undefined?stcls(crv,cr.a,cr.b,cr.c2,cr.d):'';var tc=ttcls(crcl);h+='<tr><td>'+cr.n+'</td><td class="tv '+tc+'">'+(crv!==undefined?fmt(crv,2)+' '+cr.u:'—')+'</td><td style="font-size:9px;color:#3a5f8a">'+cr.rng+'</td><td class="'+tc+'" style="font-size:9px">'+stlbl(crcl)+'</td></tr>';}
+h+='</table></div>';
+if(S.diags&&S.diags.length){h+='<div class="rsec"><div class="rsh">3 — DIAGNÓSTICO</div>';for(var dk=0;dk<S.diags.length;dk++){var dg=S.diags[dk];var dc2=dg.lv==='critical'?'#ef4444':dg.lv==='warning'?'#f59e0b':'#10b981';h+='<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:bold;color:'+dc2+'">'+dg.ic+' '+dg.tt+'</div><div style="font-size:9.5px;color:#6b8fb5;line-height:1.5;margin-top:2px">'+dg.dc+'</div></div>';}h+='</div>';}
+h+='<div class="rsec"><div class="rsh">4 — RECOMENDACIONES</div>';
+var recs=[];
+if(has('OD')&&nv('OD')<1.5)recs.push('Aumentar caudal de aire. Verificar difusores.');
+if(c.FM!==undefined&&c.FM>0.5)recs.push('Reducir caudal o aumentar MLSS para bajar F/M.');
+if(c.FM!==undefined&&c.FM<0.1)recs.push('Reducir purga para incrementar edad del lodo.');
+if(c.SRT!==undefined&&c.SRT<5)recs.push('Reducir Qw para subir SRT sobre 5 días.');
+if(c.SRT!==undefined&&c.SRT>20)recs.push('Incrementar purga para rejuvenecer biomasa.');
+if(has('SVI')&&nv('SVI')>150)recs.push('Investigar filamentosas por microscopía.');
+if(has('SST_out')&&nv('SST_out')>30)recs.push('Revisar mecanismo de raspado del clarificador.');
+if(c.CS!==undefined&&c.CS>40)recs.push('Evaluar reducción de caudal pico.');
+if(c.TRH!==undefined&&c.TRH<6)recs.push('TRH bajo. Evaluar aumento del volumen del reactor.');
+if(!recs.length){recs.push('Planta en parámetros óptimos. Mantener condiciones actuales.');recs.push('Continuar monitoreo diario de OD, MLSS y SVI.');}
+for(var ri2=0;ri2<recs.length;ri2++)h+='<div class="rec">'+(ri2+1)+'. '+recs[ri2]+'</div>';
+h+='</div>';
+if(S.health){var hs3=S.health.score;var hc3=hs3>=8?'#10b981':hs3>=6?'#f59e0b':'#ef4444';h+='<div class="rsec"><div class="rsh">5 — ÍNDICE DE SALUD</div><div style="text-align:center;padding:12px 0"><span style="font-size:42px;font-weight:bold;color:'+hc3+'">'+hs3.toFixed(1)+'</span><span style="font-size:16px;color:#6b8fb5">/10</span></div><div style="text-align:center;font-size:11px;color:#6b8fb5;margin-bottom:12px">'+(hs3>=8?'Operación estable':hs3>=6?'Requiere atención':'Estado crítico')+'</div><table><tr><th>PARÁMETRO</th><th>VALOR</th><th>PUNTAJE</th></tr>';for(var hpi=0;hpi<S.health.params.length;hpi++){var hp=S.health.params[hpi];var hpc=hp.s>=8?'cok':hp.s>=5?'cwn':'cbd';h+='<tr><td>'+hp.n+'</td><td style="color:#6b8fb5">'+hp.v+'</td><td class="tv '+hpc+'">'+hp.s+'/10</td></tr>';}h+='</table></div>';}
+if(S.generating)h+='<div style="text-align:center;padding:16px;font-size:11px;color:#00d4ff">⏳ Generando análisis con IA...</div>';
+if(S.aiText)h+='<div class="ai"><div class="ait">🤖 ANÁLISIS INTELIGENTE</div><div class="aitx">'+S.aiText+'</div></div>';}
+h+='</div>';}
+document.getElementById('app').innerHTML=h;}
+function runCalc(){S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='calculos';render();}
+function runAI(){
+S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='informe';S.generating=true;render();
+var c=S.calc;
+var sum='Planta:'+(S.plantName||'Sin nombre')+' Fecha:'+S.date+'. Q='+S.v.Q+' m3/dia, V='+S.v.V+' m3, DBO_in='+S.v.DBO_in+', DBO_out='+S.v.DBO_out+', SST_out='+S.v.SST_out+' mg/L, MLSS='+S.v.MLSS+', OD='+S.v.OD+' mg/L, SVI='+S.v.SVI+' mL/g.';
+if(c.FM!==undefined)sum+=' F/M='+c.FM.toFixed(3)+',';
+if(c.SRT!==undefined)sum+=' SRT='+c.SRT.toFixed(1)+'d,';
+if(c.TRH!==undefined)sum+=' TRH='+c.TRH.toFixed(1)+'h,';
+if(c.CS!==undefined)sum+=' CS='+c.CS.toFixed(1)+'.';
+if(S.health)sum+=' Indice:'+S.health.score.toFixed(1)+'/10.';
+var al=[];for(var i=0;i<S.diags.length;i++){if(S.diags[i].lv!=='good')al.push(S.diags[i].tt);}
+if(al.length)sum+=' Alertas:'+al.join(', ')+'.';
+fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:'Eres ingeniero especialista en plantas de tratamiento de aguas servidas. Analiza estos parametros: '+sum+' Responde con: 1. ESTADO GENERAL DEL REACTOR. 2. ESTADO DEL CLARIFICADOR. 3. CALIDAD DEL EFLUENTE. 4. RECOMENDACIONES (3-5 acciones numeradas).'}]})}).then(function(r){return r.json();}).then(function(d){S.aiText=d.content?d.content.map(function(b){return b.text||'';}).join('\n'):'Sin respuesta.';S.generating=false;render();}).catch(function(){S.aiText='Error al conectar con IA.';S.generating=false;render();});}
+render();
+</script>
+</body>
+</html>
