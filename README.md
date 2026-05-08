@@ -198,7 +198,7 @@ var AI=[{n:'OD',v:has('OD')?nv('OD'):undefined,u:'mg/L',a:1.5,b:3.5,c:1.0,d:4.5}
 for(var ai2=0;ai2<AI.length;ai2++){var it3=AI[ai2];var cl3=it3.v!==undefined?stcls(it3.v,it3.a,it3.b,it3.c,it3.d):'';h+='<div style="background:#060d1c;border-radius:8px;padding:8px 10px;border:1px solid '+(cl3==='ok'?'#10b98144':cl3==='wn'?'#f59e0b44':cl3==='bd'?'#ef444444':'#1a3050')+'"><div style="font-size:9px;color:#6b8fb5">'+it3.n+'</div><div style="font-size:15px;font-weight:bold;color:'+(cl3?stcol(cl3):'#c8dff5')+'">'+(it3.v!==undefined?fmt(it3.v,2):'—')+'</div><div style="font-size:8px;color:#3a5f8a">'+it3.u+'</div></div>';}
 h+='</div></div>';
 h+='<div class="st">GRÁFICO DE INDICADORES</div><div class="chart-wrap"><canvas id="migrafico"></canvas></div>';
-if(S.health){var hs2=S.health.score;var hc2=hs2>=8?'#10b981':hs2>=6?'#f59e0b':'#ef4444';h+='<div class="st">ÍNDICE DE SALUD</div><div class="hcard"><div class="hsc" style="color:'+hc2+'">'+hs2.toFixed(1)+'<span style="font-size:20px;color:#6b8fb5">/10</span></div><div class="hl">'+(hs2>=8?'Operación estable':hs2>=6?'Requiere atención':'Estado crítico')+'</div><div class="hbw"><div class="hb" style="width:'+(hs2*10)+'%;background:'+hc2+'"></div></div><div class="hpg">';for(var pi=0;pi<S.health.params.length;pi++){var pp=S.health.params[pi];var pc=pp.s>=8?'#10b981':pp.s>=5?'#f59e0b':'#ef4444';h+='<div class="hp"><span class="hpn">'+pp.n+'</span><span class="hps" style="color:'+pc+'">'+pp.s+'/10</span></div>';}h+='</div></div>';}}
+}}
 h+='</div>';}
 if(S.tab==='diagnostico'){
 h+='<div class="pg">';
