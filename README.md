@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AquaReport Pro</title>
+<title>ActivSludge Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -161,7 +161,7 @@ var filled=0;
 for(var i=0;i<FIELDS.length;i++){if(S.v[FIELDS[i].id]!==undefined&&S.v[FIELDS[i].id]!=='')filled++;}
 var pct=Math.round(filled/FIELDS.length*100);
 var h='';
-h+='<div class="hdr"><div class="logo">💧</div><div><div class="hname">AQUAREPORT PRO</div><div class="hsub">DASHBOARD PTAS</div></div>';
+h+='<div class="hdr"><div class="logo">💧</div><div><div class="hname">ACTIVSLUDGE PRO</div><div class="hsub">LODOS ACTIVADOS — AIREACIÓN EXTENDIDA</div></div>';
 
 h+='</div>';
 var NT=[{id:'datos',ic:'📋',lb:'DATOS'},{id:'dashboard',ic:'📊',lb:'DASHBOARD'},{id:'diagnostico',ic:'🔍',lb:'DIAGNÓST.'},{id:'informe',ic:'📄',lb:'INFORME'}];
