@@ -162,7 +162,7 @@ for(var i=0;i<FIELDS.length;i++){if(S.v[FIELDS[i].id]!==undefined&&S.v[FIELDS[i]
 var pct=Math.round(filled/FIELDS.length*100);
 var h='';
 h+='<div class="hdr"><div class="logo">💧</div><div><div class="hname">AQUAREPORT PRO</div><div class="hsub">DASHBOARD PTAS</div></div>';
-if(S.health){var hs=S.health.score;var hc=hs>=8?'#10b981':hs>=6?'#f59e0b':'#ef4444';h+='<div class="hidx"><div class="hidxv" style="color:'+hc+'">'+hs.toFixed(1)+'</div><div class="hidxl">ÍNDICE/10</div></div>';}
+
 h+='</div>';
 var NT=[{id:'datos',ic:'📋',lb:'DATOS'},{id:'dashboard',ic:'📊',lb:'DASHBOARD'},{id:'diagnostico',ic:'🔍',lb:'DIAGNÓST.'},{id:'informe',ic:'📄',lb:'INFORME'}];
 h+='<div class="nav">';
