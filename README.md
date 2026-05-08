@@ -49,7 +49,7 @@ body{background:#060d1c;color:#c8dff5;font-family:monospace;min-height:100vh}
 .di{border-radius:10px;padding:10px 12px;border:1px solid}
 .di.critical{background:#1a0505;border-color:#ef444466}.di.warning{background:#1a1005;border-color:#f59e0b66}.di.good{background:#051a12;border-color:#10b98166}
 .dit{font-size:11px;font-weight:bold;margin-bottom:3px}.did{font-size:10px;color:#6b8fb5;line-height:1.5}
-.rsec{background:#060d1c;border:1px solid #1a3050;border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.rsec{background:#030810;border:1px solid #1a3050;border-radius:10px;padding:12px 14px;margin-bottom:10px}
 .rsh{font-size:9px;color:#00d4ff;letter-spacing:.1em;margin-bottom:10px}
 table{width:100%;border-collapse:collapse;font-size:10px}
 th{text-align:left;color:#6b8fb5;font-size:8px;padding:4px 6px;border-bottom:1px solid #1a3050;font-weight:normal}
