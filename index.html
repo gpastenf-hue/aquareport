@@ -77,6 +77,8 @@ var FIELDS=[
 {id:'SST_out',lb:'SST efluente (salida)',un:'mg/L',g:'efl'},
 {id:'MLSS',lb:'MLSS — Sólidos en reactor',un:'mg/L',g:'ope'},
 {id:'OD',lb:'Oxígeno disuelto',un:'mg/L',g:'ope'},
+{id:'pH',lb:'pH',un:'',g:'ope'},
+{id:'temp',lb:'Temperatura',un:'°C',g:'ope'},
 {id:'SVI',lb:'Índice volumétrico lodo',un:'mL/g',g:'ope'},
 {id:'Qw',lb:'Caudal de purga',un:'m³/día',g:'lod'},
 {id:'Xw',lb:'Sólidos en purga',un:'mg/L',g:'lod'},
@@ -109,7 +111,7 @@ if(has('Qr')&&has('Q')&&Q>0)c.RR=Qr/Q;
 c.estable=true;
 if(c.FM!==undefined&&c.FM>0.15)c.estable=false;
 if(has('SVI')&&nv('SVI')>150)c.estable=false;
-if(c.flujoSolidos!==undefined&&c.flujoSolidos>100)c.estable=false;
+if(c.flujoSolidos!==undefined&&c.flujoSolidos>120)c.estable=false;
 return c;}
 function diagAll(c){
 var d=[],OD=nv('OD'),SVI=nv('SVI'),So=nv('SST_out');
@@ -120,7 +122,9 @@ if(c.SRT!==undefined){if(c.SRT<15)add('critical','🚨','SRT crítico','SRT='+c.
 if(has('SVI')){if(SVI>200)add('critical','🚨','Bulking severo','SVI='+SVI+' mL/g. Microscopía urgente.');else if(SVI>150)add('warning','⚠️','Bulking probable','SVI='+SVI+' mL/g. Monitorear filamentosas.');else if(SVI<50)add('warning','⚠️','Lodo muy denso','SVI='+SVI+' mL/g. Verificar SRT (posible lodo mineralizado), revisar sistemas de agitación por exceso de turbulencia y controlar funcionamiento del desarenador.');else add('good','✅','Sedimentabilidad correcta','SVI='+SVI+' mL/g.');}
 if(has('SST_out')){if(So>60)add('critical','🚨','Arrastre crítico','SST='+So+' mg/L. Falla en clarificador.');else if(So>30)add('warning','⚠️','Arrastre de lodos','SST='+So+' mg/L. Sobre límite (30 mg/L).');else add('good','✅','Clarificación correcta','SST='+So+' mg/L. Dentro del límite.');}
 if(c.CS!==undefined){if(c.CS>32)add('critical','🚨','Clarificador sobrecargado','CS='+c.CS.toFixed(1)+' m³/m²·d. Supera límite para aireación extendida (24 m³/m²·d).');else if(c.CS>24)add('warning','⚠️','Carga superficial elevada','CS='+c.CS.toFixed(1)+' m³/m²·d. Sobre rango recomendado (8–24 m³/m²·d).');else add('good','✅','Clarificador normal','CS='+c.CS.toFixed(1)+' m³/m²·d. Dentro del rango óptimo.');}
-if(has('pH')){var ph=nv('pH');if(ph<6.0)add('critical','🚨','pH crítico ácido','pH='+ph+'. Inhibición severa de biomasa. Dosificar bicarbonato de sodio urgente. Suspender purga temporalmente para no perder biomasa.');else if(ph<6.5)add('warning','⚠️','pH ácido','pH='+ph+'. Puede inhibir nitrificación. Verificar descargas ácidas y dosificar NaHCO₃ para alcanzar rango óptimo (6.5–8.0).');else if(ph>9.0)add('critical','🚨','pH crítico alcalino','pH='+ph+'. Inhibición severa de biomasa heterótrofa. Identificar fuente alcalina urgente y evaluar neutralización con CO₂ o ácido acético.');else if(ph>8.0)add('warning','⚠️','pH alcalino','pH='+ph+'. Riesgo de inhibición de nitrificantes. Verificar descargas alcalinas y revisar dosificación de reactivos.');else add('good','✅','pH correcto','pH='+ph+'. Dentro del rango óptimo (6.5–8.0) para actividad biológica.');} if(has('temp')){var tmp=nv('temp');if(tmp<8.0)add('critical','🚨','Temperatura crítica baja','T='+tmp+'°C. Actividad biológica muy reducida. Incrementar SRT al máximo, reducir purga al mínimo y aumentar monitoreo de DBO efluente a frecuencia diaria.');else if(tmp<15.0)add('warning','⚠️','Temperatura baja','T='+tmp+'°C. Actividad biológica reducida. Aumentar SRT reduciendo purga, monitorear nitrificación frecuentemente y verificar OD.');else if(tmp>35.0)add('critical','🚨','Temperatura crítica alta','T='+tmp+'°C. Riesgo de inhibición térmica de biomasa. Identificar fuente de calor en afluente y evaluar medidas de enfriamiento.');else if(tmp>30.0)add('warning','⚠️','Temperatura alta','T='+tmp+'°C. Solubilidad de OD reducida. Aumentar monitoreo de OD y SVI, verificar SST efluente.');else add('good','✅','Temperatura correcta','T='+tmp+'°C. Dentro del rango óptimo (15–30°C) para lodos activados.');},'TRH='+c.TRH.toFixed(1)+' h. Tiempo crítico para biodegradación en aireación extendida.');else if(c.TRH<18)add('warning','⚠️','TRH bajo','TRH='+c.TRH.toFixed(1)+' h. Bajo rango recomendado (18–30 h).');else if(c.TRH>36)add('warning','⚠️','TRH elevado','TRH='+c.TRH.toFixed(1)+' h. Riesgo de condiciones sépticas en el reactor.');else add('good','✅','TRH adecuado','TRH='+c.TRH.toFixed(1)+' h. Dentro del rango óptimo (18–30 h).');}
+if(c.TRH!==undefined){if(c.TRH<12)add('critical','🚨','TRH insuficiente','TRH='+c.TRH.toFixed(1)+' h. Tiempo crítico para biodegradación en aireación extendida.');else if(c.TRH<18)add('warning','⚠️','TRH bajo','TRH='+c.TRH.toFixed(1)+' h. Bajo rango recomendado (18–30 h).');else if(c.TRH>36)add('warning','⚠️','TRH elevado','TRH='+c.TRH.toFixed(1)+' h. Riesgo de condiciones sépticas en el reactor.');else add('good','✅','TRH adecuado','TRH='+c.TRH.toFixed(1)+' h. Dentro del rango óptimo (18–30 h).');}
+if(has('pH')){var ph=nv('pH');if(ph<6.0)add('critical','🚨','pH crítico ácido','pH='+ph+'. Inhibición severa de biomasa. Dosificar bicarbonato de sodio urgente. Suspender purga temporalmente para no perder biomasa.');else if(ph<6.5)add('warning','⚠️','pH ácido','pH='+ph+'. Puede inhibir nitrificación. Verificar descargas ácidas y dosificar NaHCO₃ para alcanzar rango óptimo (6.5–8.0).');else if(ph>9.0)add('critical','🚨','pH crítico alcalino','pH='+ph+'. Inhibición severa de biomasa heterótrofa. Identificar fuente alcalina urgente y evaluar neutralización con CO₂ o ácido acético.');else if(ph>8.0)add('warning','⚠️','pH alcalino','pH='+ph+'. Riesgo de inhibición de nitrificantes. Verificar descargas alcalinas y revisar dosificación de reactivos.');else add('good','✅','pH correcto','pH='+ph+'. Dentro del rango óptimo (6.5–8.0) para actividad biológica.');}
+if(has('temp')){var tmp=nv('temp');if(tmp<8.0)add('critical','🚨','Temperatura crítica baja','T='+tmp+'°C. Actividad biológica muy reducida. Incrementar SRT al máximo, reducir purga al mínimo y aumentar monitoreo de DBO efluente a frecuencia diaria.');else if(tmp<15.0)add('warning','⚠️','Temperatura baja','T='+tmp+'°C. Actividad biológica reducida. Aumentar SRT reduciendo purga, monitorear nitrificación frecuentemente y verificar OD.');else if(tmp>35.0)add('critical','🚨','Temperatura crítica alta','T='+tmp+'°C. Riesgo de inhibición térmica de biomasa. Identificar fuente de calor en afluente y evaluar medidas de enfriamiento.');else if(tmp>30.0)add('warning','⚠️','Temperatura alta','T='+tmp+'°C. Solubilidad de OD reducida. Aumentar monitoreo de OD y SVI, verificar SST efluente.');else add('good','✅','Temperatura correcta','T='+tmp+'°C. Dentro del rango óptimo (15–30°C) para lodos activados.');}
 return d;}
 function healthAll(c){
 function sc(v,r){for(var i=0;i<r.length;i++){if(v>=r[i][0]&&v<=r[i][1])return r[i][2];}return 2;}
@@ -129,6 +133,8 @@ if(c.FM!==undefined)p.push({n:'F/M',s:sc(c.FM,[[0.05,0.15,10],[0.03,0.20,6]]),v:
 if(c.SRT!==undefined)p.push({n:'SRT',s:sc(c.SRT,[[20,30,10],[15,35,6]]),v:c.SRT.toFixed(1)+'d'});
 if(has('SVI'))p.push({n:'SVI',s:sc(nv('SVI'),[[50,150,10],[30,200,6]]),v:nv('SVI')+''});
 if(has('OD'))p.push({n:'OD',s:sc(nv('OD'),[[1.5,3.5,10],[1.0,4.5,6]]),v:nv('OD')+''});
+if(has('pH'))p.push({n:'pH',s:sc(nv('pH'),[[6.5,8.0,10],[6.0,9.0,6]]),v:nv('pH')+''});
+if(has('temp'))p.push({n:'Temp',s:sc(nv('temp'),[[15,30,10],[8,35,6]]),v:nv('temp')+'°C'});
 if(c.TRH!==undefined)p.push({n:'TRH',s:sc(c.TRH,[[18,30,10],[12,36,6]]),v:c.TRH.toFixed(1)+'h'});
 if(c.CS!==undefined)p.push({n:'C.Sup.',s:sc(c.CS,[[8,24,10],[5,32,6]]),v:c.CS.toFixed(1)});
 if(c.remDBO!==undefined)p.push({n:'Rem.DBO',s:sc(c.remDBO,[[90,100,10],[80,90,7]]),v:c.remDBO.toFixed(1)+'%'});
@@ -141,10 +147,10 @@ if(!ctx)return;
 if(chartInstance){chartInstance.destroy();chartInstance=null;}
 var labels=[],data=[],colors=[];
 if(c.FM!==undefined){labels.push('F/M');data.push(parseFloat(c.FM.toFixed(3)));colors.push(c.FM>=0.05&&c.FM<=0.15?'#10b981':c.FM<=0.20?'#f59e0b':'#ef4444');}
-if(c.TRH!==undefined){labels.push('TRH(h)');data.push(parseFloat(c.TRH.toFixed(1)));colors.push(c.TRH>=18&&c.TRH<=36?'#10b981':c.TRH>=12?'#f59e0b':'#ef4444');}
+if(c.TRH!==undefined){labels.push('TRH(h)');data.push(parseFloat(c.TRH.toFixed(1)));colors.push(c.TRH>=18&&c.TRH<=30?'#10b981':c.TRH>=12?'#f59e0b':'#ef4444');}
 if(c.remDBO!==undefined){labels.push('Rem.DBO(%)');data.push(parseFloat(c.remDBO.toFixed(1)));colors.push(c.remDBO>=90?'#10b981':c.remDBO>=80?'#f59e0b':'#ef4444');}
-if(c.flujoSolidos!==undefined){labels.push('Flujo Sol.');data.push(parseFloat(c.flujoSolidos.toFixed(1)));colors.push(c.flujoSolidos>=50&&c.flujoSolidos<=100?'#10b981':c.flujoSolidos<=120?'#f59e0b':'#ef4444');}
-if(c.CS!==undefined){labels.push('C.Sup.');data.push(parseFloat(c.CS.toFixed(1)));colors.push(c.CS<=25?'#10b981':c.CS<=40?'#f59e0b':'#ef4444');}
+if(c.flujoSolidos!==undefined){labels.push('Flujo Sol.');data.push(parseFloat(c.flujoSolidos.toFixed(1)));colors.push(c.flujoSolidos>=24&&c.flujoSolidos<=120?'#10b981':c.flujoSolidos<=170?'#f59e0b':'#ef4444');}
+if(c.CS!==undefined){labels.push('C.Sup.');data.push(parseFloat(c.CS.toFixed(1)));colors.push(c.CS>=8&&c.CS<=24?'#10b981':c.CS<=32?'#f59e0b':'#ef4444');}
 chartInstance=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Indicadores',data:data,backgroundColor:colors,borderRadius:6}]},options:{responsive:true,plugins:{legend:{labels:{color:'#c8dff5',font:{family:'monospace',size:10}}}},scales:{x:{ticks:{color:'#6b8fb5'},grid:{color:'#1a3050'}},y:{ticks:{color:'#6b8fb5'},grid:{color:'#1a3050'}}}}});}
 </script>
 <script>
@@ -184,9 +190,13 @@ h+='<div class="st">CLARIFICADOR SECUNDARIO</div><div class="card"><div style="d
 var CI=[{n:'Carga Sup.',v:c.CS,u:'m³/m²·d',a:8,b:24,c:5,d:32},{n:'Flujo Sólidos',v:c.flujoSolidos,u:'kg/m²·d',a:24,b:120,c:15,d:170},{n:'SST efluente',v:has('SST_out')?nv('SST_out'):undefined,u:'mg/L',a:0,b:30,c:0,d:60},{n:'SVI',v:has('SVI')?nv('SVI'):undefined,u:'mL/g',a:50,b:150,c:30,d:200}];
 for(var ci2=0;ci2<CI.length;ci2++){var it2=CI[ci2];var cl2=it2.v!==undefined?stcls(it2.v,it2.a,it2.b,it2.c,it2.d):'';h+='<div style="background:#060d1c;border-radius:8px;padding:8px 10px;border:1px solid '+(cl2==='ok'?'#10b98144':cl2==='wn'?'#f59e0b44':cl2==='bd'?'#ef444444':'#1a3050')+'"><div style="font-size:9px;color:#6b8fb5">'+it2.n+'</div><div style="font-size:15px;font-weight:bold;color:'+(cl2?stcol(cl2):'#c8dff5')+'">'+(it2.v!==undefined?fmt(it2.v,2):'—')+'</div><div style="font-size:8px;color:#3a5f8a">'+it2.u+'</div></div>';}
 h+='</div></div>';
-h+='<div class="st">AIREACIÓN Y EFLUENTE</div><div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-var AI=[{n:'OD',v:has('OD')?nv('OD'):undefined,u:'mg/L',a:1.5,b:3.5,c:1.0,d:4.5},{n:'Rem. DBO',v:c.remDBO,u:'%',a:90,b:100,c:80,d:90},{n:'Rem. SST',v:c.remSST,u:'%',a:85,b:100,c:70,d:85},{n:'DBO efluente',v:has('DBO_out')?nv('DBO_out'):undefined,u:'mg/L',a:0,b:30,c:0,d:60}];
+h+='<div class="st">AIREACIÓN, pH Y TEMPERATURA</div><div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+var AI=[{n:'OD',v:has('OD')?nv('OD'):undefined,u:'mg/L',a:1.5,b:3.5,c:1.0,d:4.5},{n:'pH',v:has('pH')?nv('pH'):undefined,u:'',a:6.5,b:8.0,c:6.0,d:9.0},{n:'Temperatura',v:has('temp')?nv('temp'):undefined,u:'°C',a:15,b:30,c:8,d:35},{n:'DBO efluente',v:has('DBO_out')?nv('DBO_out'):undefined,u:'mg/L',a:0,b:30,c:0,d:60}];
 for(var ai2=0;ai2<AI.length;ai2++){var it3=AI[ai2];var cl3=it3.v!==undefined?stcls(it3.v,it3.a,it3.b,it3.c,it3.d):'';h+='<div style="background:#060d1c;border-radius:8px;padding:8px 10px;border:1px solid '+(cl3==='ok'?'#10b98144':cl3==='wn'?'#f59e0b44':cl3==='bd'?'#ef444444':'#1a3050')+'"><div style="font-size:9px;color:#6b8fb5">'+it3.n+'</div><div style="font-size:15px;font-weight:bold;color:'+(cl3?stcol(cl3):'#c8dff5')+'">'+(it3.v!==undefined?fmt(it3.v,2):'—')+'</div><div style="font-size:8px;color:#3a5f8a">'+it3.u+'</div></div>';}
+h+='</div></div>';
+h+='<div class="st">DESEMPEÑO</div><div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+var PI=[{n:'Rem. DBO',v:c.remDBO,u:'%',a:90,b:100,c:80,d:90},{n:'Rem. SST',v:c.remSST,u:'%',a:85,b:100,c:70,d:85}];
+for(var pii=0;pii<PI.length;pii++){var it4=PI[pii];var cl4=it4.v!==undefined?stcls(it4.v,it4.a,it4.b,it4.c,it4.d):'';h+='<div style="background:#060d1c;border-radius:8px;padding:8px 10px;border:1px solid '+(cl4==='ok'?'#10b98144':cl4==='wn'?'#f59e0b44':cl4==='bd'?'#ef444444':'#1a3050')+'"><div style="font-size:9px;color:#6b8fb5">'+it4.n+'</div><div style="font-size:15px;font-weight:bold;color:'+(cl4?stcol(cl4):'#c8dff5')+'">'+(it4.v!==undefined?fmt(it4.v,2):'—')+'</div><div style="font-size:8px;color:#3a5f8a">'+it4.u+'</div></div>';}
 h+='</div></div>';
 h+='<div class="st">GRÁFICO DE INDICADORES</div><div class="chart-wrap"><canvas id="migrafico"></canvas></div>';}
 h+='</div>';}
@@ -209,9 +219,17 @@ h+='</table></div>';
 if(S.diags&&S.diags.length){h+='<div class="rsec"><div class="rsh">3 — DIAGNÓSTICO</div>';for(var dk=0;dk<S.diags.length;dk++){var dg=S.diags[dk];var dc2=dg.lv==='critical'?'#ef4444':dg.lv==='warning'?'#f59e0b':'#10b981';h+='<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:bold;color:'+dc2+'">'+dg.ic+' '+dg.tt+'</div><div style="font-size:9.5px;color:#6b8fb5;line-height:1.5;margin-top:2px">'+dg.dc+'</div></div>';}h+='</div>';}
 h+='<div class="rsec"><div class="rsh">4 — RECOMENDACIONES</div>';
 var recs=[];
-if(has('pH')){var ph2=nv('pH');if(ph2<6.0)recs.push('pH crítico ('+ph2+'). Dosificar bicarbonato de sodio urgente. Suspender purga temporalmente. Notificar a autoridad sanitaria si se sospecha descarga industrial.');else if(ph2<6.5)recs.push('pH ácido ('+ph2+'). Verificar descargas ácidas al sistema. Dosificar NaHCO₃ para alcanzar rango óptimo (6.5–8.0). Monitorear alcalinidad del licor mezcla (mínimo 80 mg/L CaCO₃).');else if(ph2>9.0)recs.push('pH crítico alcalino ('+ph2+'). Identificar y aislar fuente alcalina urgentemente. Evaluar dosificación de CO₂ o ácido acético para neutralización.');else if(ph2>8.0)recs.push('pH alcalino ('+ph2+'). Verificar descargas alcalinas. Revisar dosificación de reactivos en pretratamiento. Monitorear amonio libre (NH₃).');} if(has('temp')){var tmp2=nv('temp');if(tmp2<8.0)recs.push('Temperatura crítica ('+tmp2+'°C). Incrementar SRT al máximo operacional. Reducir purga al mínimo. Monitorear DBO efluente diariamente. Evaluar medidas de aislamiento térmico del reactor.');else if(tmp2<15.0)recs.push('Temperatura baja ('+tmp2+'°C). Aumentar SRT reduciendo tasa de purga. Monitorear eficiencia de nitrificación con mayor frecuencia. Verificar que OD se mantenga en rango óptimo.');else if(tmp2>35.0)recs.push('Temperatura crítica alta ('+tmp2+'°C). Identificar fuente de calor en el afluente. Aumentar recirculación para homogeneizar temperatura. Monitorear actividad biológica.');else if(tmp2>30.0)recs.push('Temperatura alta ('+tmp2+'°C). Aumentar frecuencia de monitoreo de OD y SVI. Verificar SST efluente. Considerar reducción moderada del SRT.');} ('+nv('OD')+' mg/L). Aumentar caudal de aire urgente y verificar difusores por posible obstrucción.');
+if(has('OD')&&nv('OD')<1.0)recs.push('OD crítico ('+nv('OD')+' mg/L). Aumentar caudal de aire urgente y verificar difusores por posible obstrucción.');
 else if(has('OD')&&nv('OD')<1.5)recs.push('OD bajo ('+nv('OD')+' mg/L). Incrementar suministro de aire para alcanzar rango óptimo (1.5–3.5 mg/L).');
 else if(has('OD')&&nv('OD')>4.5)recs.push('OD elevado ('+nv('OD')+' mg/L). Reducir caudal de sopladores para optimizar consumo energético.');
+if(has('pH')&&nv('pH')<6.0)recs.push('pH crítico ('+nv('pH')+'). Dosificar bicarbonato de sodio urgente. Suspender purga temporalmente. Notificar a autoridad sanitaria si se sospecha descarga industrial.');
+else if(has('pH')&&nv('pH')<6.5)recs.push('pH ácido ('+nv('pH')+'). Verificar descargas ácidas al sistema. Dosificar NaHCO₃ para alcanzar rango óptimo (6.5–8.0). Monitorear alcalinidad del licor mezcla (mínimo 80 mg/L CaCO₃).');
+else if(has('pH')&&nv('pH')>9.0)recs.push('pH crítico alcalino ('+nv('pH')+'). Identificar y aislar fuente alcalina urgentemente. Evaluar dosificación de CO₂ o ácido acético para neutralización.');
+else if(has('pH')&&nv('pH')>8.0)recs.push('pH alcalino ('+nv('pH')+'). Verificar descargas alcalinas. Revisar dosificación de reactivos en pretratamiento. Monitorear amonio libre (NH₃).');
+if(has('temp')&&nv('temp')<8.0)recs.push('Temperatura crítica ('+nv('temp')+'°C). Incrementar SRT al máximo operacional. Reducir purga al mínimo. Monitorear DBO efluente diariamente. Evaluar medidas de aislamiento térmico del reactor.');
+else if(has('temp')&&nv('temp')<15.0)recs.push('Temperatura baja ('+nv('temp')+'°C). Aumentar SRT reduciendo tasa de purga. Monitorear eficiencia de nitrificación con mayor frecuencia. Verificar que OD se mantenga en rango óptimo.');
+else if(has('temp')&&nv('temp')>35.0)recs.push('Temperatura crítica alta ('+nv('temp')+'°C). Identificar fuente de calor en el afluente. Aumentar recirculación para homogeneizar temperatura. Monitorear actividad biológica.');
+else if(has('temp')&&nv('temp')>30.0)recs.push('Temperatura alta ('+nv('temp')+'°C). Aumentar frecuencia de monitoreo de OD y SVI. Verificar SST efluente. Considerar reducción moderada del SRT.');
 if(c.FM!==undefined&&c.FM>0.15)recs.push('F/M elevado ('+c.FM.toFixed(3)+'). Reducir tasa de purga para aumentar MLSS en el reactor y restablecer equilibrio sustrato/biomasa.');
 if(c.FM!==undefined&&c.FM<0.05)recs.push('F/M bajo ('+c.FM.toFixed(3)+'). Lodo envejecido. Incrementar purga para rejuvenecer la biomasa.');
 if(c.SRT!==undefined&&c.SRT<20)recs.push('SRT bajo ('+c.SRT.toFixed(1)+' días). Reducir caudal de purga (Qw) para aumentar la edad del lodo al rango óptimo (20–30 días).');
@@ -219,11 +237,11 @@ if(c.SRT!==undefined&&c.SRT>35)recs.push('SRT elevado ('+c.SRT.toFixed(1)+' día
 if(has('SVI')&&nv('SVI')>150)recs.push('SVI elevado ('+nv('SVI')+' mL/g). Investigar presencia de bacterias filamentosas por microscopía. Evaluar cloro al retorno de lodos.');
 if(has('SVI')&&nv('SVI')<50)recs.push('SVI bajo ('+nv('SVI')+' mL/g). Verificar SRT (posible lodo mineralizado), revisar sistemas de agitación por exceso de turbulencia y controlar funcionamiento del desarenador.');
 if(has('SST_out')&&nv('SST_out')>30)recs.push('SST efluente elevado ('+nv('SST_out')+' mg/L). Verificar: (1) funcionamiento del mecanismo de raspado, (2) carga hidráulica superficial, (3) sedimentabilidad del lodo mediante SVI, (4) posibles cortocircuitos hidráulicos y (5) altura del manto de lodos.');
-if(c.CS!==undefined&&c.CS>40)recs.push('Carga superficial elevada ('+c.CS.toFixed(1)+' m³/m²·d). Evaluar reducción de caudal pico o ampliación del clarificador.');
+if(c.CS!==undefined&&c.CS>24)recs.push('Carga superficial elevada ('+c.CS.toFixed(1)+' m³/m²·d). Evaluar reducción de caudal pico o ampliación del clarificador.');
 if(c.TRH!==undefined&&c.TRH<18)recs.push('TRH bajo ('+c.TRH.toFixed(1)+' h). Tiempo de retención insuficiente para aireación extendida. Evaluar aumento del volumen del reactor.');
-if(c.TRH!==undefined&&c.TRH>40)recs.push('TRH elevado ('+c.TRH.toFixed(1)+' h). Riesgo de condiciones sépticas. Revisar caudal de entrada.');
-if(c.flujoSolidos!==undefined&&c.flujoSolidos>100)recs.push('Flujo de sólidos elevado ('+c.flujoSolidos.toFixed(1)+' kg/m²·d). Aumentar recirculación de lodos e incrementar purga para reducir MLSS en el reactor.');
-if(c.flujoSolidos!==undefined&&c.flujoSolidos<50)recs.push('Flujo de sólidos bajo ('+c.flujoSolidos.toFixed(1)+' kg/m²·d). Verificar MLSS en reactor. Si está bajo 2.000 mg/L reducir purga para acumular biomasa.');
+if(c.TRH!==undefined&&c.TRH>36)recs.push('TRH elevado ('+c.TRH.toFixed(1)+' h). Riesgo de condiciones sépticas. Revisar caudal de entrada.');
+if(c.flujoSolidos!==undefined&&c.flujoSolidos>120)recs.push('Flujo de sólidos elevado ('+c.flujoSolidos.toFixed(1)+' kg/m²·d). Aumentar recirculación de lodos e incrementar purga para reducir MLSS en el reactor.');
+if(c.flujoSolidos!==undefined&&c.flujoSolidos<24)recs.push('Flujo de sólidos bajo ('+c.flujoSolidos.toFixed(1)+' kg/m²·d). Verificar MLSS en reactor. Si está bajo 2.000 mg/L reducir purga para acumular biomasa.');
 if(has('MLSS')&&nv('MLSS')>5000)recs.push('MLSS elevado ('+nv('MLSS')+' mg/L). Incrementar purga para reducir concentración de sólidos en el reactor.');
 if(has('MLSS')&&nv('MLSS')<1500)recs.push('MLSS bajo ('+nv('MLSS')+' mg/L). Reducir purga para acumular biomasa en el reactor.');
 if(c.RR!==undefined&&c.RR>2.0)recs.push('Recirculación elevada ('+c.RR.toFixed(2)+'). Reducir caudal de retorno para evitar dilución del reactor.');
@@ -241,8 +259,6 @@ function runCalc(){S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S
 function runAI(){
 S.calc=calcAll();S.diags=diagAll(S.calc);S.health=healthAll(S.calc);S.tab='informe';
 var c=S.calc;
-var crit=S.diags.filter(function(d){return d.lv==='critical';});
-var warn=S.diags.filter(function(d){return d.lv==='warning';});
 var txt='';
 txt+='1. ESTADO GENERAL DEL REACTOR BIOLÓGICO\n';
 if(c.FM!==undefined&&c.SRT!==undefined){
@@ -251,8 +267,8 @@ else txt+='El reactor presenta condiciones inestables. Se requiere intervención
 }else{txt+='Datos insuficientes para evaluar el reactor. Ingresar MLSS, caudal de purga y DBO.\n';}
 txt+='\n2. ESTADO DEL CLARIFICADOR SECUNDARIO\n';
 if(c.CS!==undefined){
-if(c.CS<=40)txt+='Clarificador operando dentro de límites hidráulicos normales. Carga superficial='+c.CS.toFixed(1)+' m³/m²·d.\n';
-else txt+='Clarificador sobrecargado. Carga superficial='+c.CS.toFixed(1)+' m³/m²·d supera el límite recomendado (40 m³/m²·d).\n';
+if(c.CS<=24)txt+='Clarificador operando dentro de límites hidráulicos normales. Carga superficial='+c.CS.toFixed(1)+' m³/m²·d.\n';
+else txt+='Clarificador sobrecargado. Carga superficial='+c.CS.toFixed(1)+' m³/m²·d supera el límite recomendado (24 m³/m²·d).\n';
 }else{txt+='Ingresar área del clarificador para evaluar carga superficial.\n';}
 txt+='\n3. EVALUACIÓN DE LA CALIDAD DEL EFLUENTE\n';
 if(c.remDBO!==undefined){
@@ -264,13 +280,16 @@ var recs2=[];
 if(has('OD')&&nv('OD')<1.0)recs2.push('Aumentar caudal de aire urgente y verificar difusores.');
 else if(has('OD')&&nv('OD')<1.5)recs2.push('Incrementar suministro de aire para alcanzar rango óptimo (1.5–3.5 mg/L).');
 else if(has('OD')&&nv('OD')>4.5)recs2.push('Reducir caudal de sopladores para optimizar consumo energético.');
+if(has('pH')&&(nv('pH')<6.5||nv('pH')>8.0))recs2.push('Corregir pH al rango óptimo (6.5–8.0) mediante dosificación de reactivos y verificación de descargas.');
+if(has('temp')&&nv('temp')<15.0)recs2.push('Temperatura baja: aumentar SRT reduciendo purga para compensar menor actividad biológica.');
+if(has('temp')&&nv('temp')>30.0)recs2.push('Temperatura alta: aumentar monitoreo de OD y SVI por riesgo de deterioro de sedimentabilidad.');
 if(c.FM!==undefined&&c.FM>0.15)recs2.push('Reducir tasa de purga para aumentar MLSS y restablecer equilibrio biológico.');
 if(c.FM!==undefined&&c.FM<0.05)recs2.push('Incrementar purga para rejuvenecer la biomasa.');
 if(c.SRT!==undefined&&c.SRT<20)recs2.push('Reducir Qw para aumentar SRT al rango óptimo (20–30 días).');
 if(c.SRT!==undefined&&c.SRT>35)recs2.push('Incrementar purga para rejuvenecer biomasa y evitar lodo mineralizado.');
 if(has('SVI')&&nv('SVI')>150)recs2.push('Investigar filamentosas por microscopía. Evaluar cloro al retorno de lodos.');
 if(has('SST_out')&&nv('SST_out')>30)recs2.push('Verificar mecanismo de raspado, carga hidráulica y manto de lodos en clarificador.');
-if(c.CS!==undefined&&c.CS>40)recs2.push('Evaluar reducción de caudal pico o ampliación del clarificador.');
+if(c.CS!==undefined&&c.CS>24)recs2.push('Evaluar reducción de caudal pico o ampliación del clarificador.');
 if(c.TRH!==undefined&&c.TRH<18)recs2.push('TRH insuficiente para aireación extendida. Evaluar aumento del reactor.');
 if(!recs2.length)recs2.push('Mantener condiciones actuales. Planta operando en parámetros óptimos.');
 for(var i=0;i<recs2.length;i++)txt+=(i+1)+'. '+recs2[i]+'\n';
