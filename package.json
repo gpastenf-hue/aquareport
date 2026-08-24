@@ -1,0 +1,12 @@
+{
+  "name": "aquareport",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/app.js --bundle --minify --sourcemap --outfile=dist/bundle.js --target=es2019",
+    "dev": "esbuild src/app.js --bundle --sourcemap --outfile=dist/bundle.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.18.0"
+  }
+}
